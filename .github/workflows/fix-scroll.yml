@@ -1,0 +1,38 @@
+name: Fix page scroll restoration
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix-scroll:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prevent browser from restoring old scroll position
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('site.html')
+          s = p.read_text(encoding='utf-8')
+          marker = 'data-scroll-restoration-fix'
+          if marker not in s:
+              script = '''<script data-scroll-restoration-fix>\nif ('scrollRestoration' in history) history.scrollRestoration = 'manual';\nwindow.addEventListener('pageshow', function(){ if (!location.hash) window.scrollTo(0,0); });\nwindow.addEventListener('load', function(){ if (!location.hash) window.scrollTo(0,0); });\n</script>'''
+              s = s.replace('<body>', '<body>' + script, 1)
+              p.write_text(s, encoding='utf-8')
+          else:
+              print('Scroll restoration fix already present')
+      - name: Commit fix
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site.html
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+          else
+            git commit -m 'Fix homepage loading at previous scroll position'
+            git push
+          fi
