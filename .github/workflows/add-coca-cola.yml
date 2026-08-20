@@ -1,0 +1,39 @@
+name: Add Coca-Cola menu image
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-coca-cola.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add supplied Coca-Cola image and update menu
+        shell: bash
+        run: |
+          mkdir -p assets
+          cat > /tmp/coca-cola.b64 <<'EOF'
+BASE64_IMAGE
+EOF
+          base64 -d /tmp/coca-cola.b64 > assets/coca-cola.jpg
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('site.html')
+          s = p.read_text()
+          old = "['Coca-Cola',3000,'https://images.unsplash.com/photo-1629203849820-fdd70d49c38e?auto=format&fit=crop&w=240&q=80']"
+          new = "['Coca-Cola',3000,'assets/coca-cola.jpg']"
+          if s.count(old) != 1:
+              raise SystemExit(f'Expected exactly one existing Coca-Cola menu entry, found {s.count(old)}')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site.html assets/coca-cola.jpg
+          git commit -m 'Use supplied Coca-Cola image in drinks menu'
+          git push
