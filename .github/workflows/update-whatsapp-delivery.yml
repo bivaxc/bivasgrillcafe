@@ -1,0 +1,34 @@
+name: Update WhatsApp delivery status
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-whatsapp-delivery.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Change WhatsApp delivery text only
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('site.html')
+          s = p.read_text()
+          old = "Delivery: ${x.delivery?money(x.delivery):'FREE'}"
+          new = "Delivery: To be confirmed"
+          if old not in s:
+              raise SystemExit('Expected WhatsApp delivery expression was not found')
+          if s.count(old) != 1:
+              raise SystemExit(f'Expected exactly one WhatsApp delivery expression, found {s.count(old)}')
+          s = s.replace(old, new, 1)
+          p.write_text(s)
+      - name: Commit site change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site.html
+          git commit -m 'Set WhatsApp delivery to be confirmed'
+          git push
