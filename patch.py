@@ -31,6 +31,8 @@ if 'function changeQty' not in s:
 s=s.replace('.item-row{grid-template-columns:1fr 62px 86px}', '.item-row{grid-template-columns:1fr auto}')
 # Remove unwanted menu items, including Coca-Cola, from the rendered menu.
 s=re.sub(r"if\(!td\.querySelector\('\.item \.item-name\[data-coke\]'\)\)\{.*?drinkList\.appendChild\(item\);\}\}", "", s, flags=re.S)
+# Hard-remove Coca-Cola cards every time the wrapper patches the embedded menu.
+s=s.replace("var removeNames={'Rolex + Drink Combo':true,'Chicken & Chips':true,'Chips & Sausages':true};", "var removeNames={'Rolex + Drink Combo':true,'Chicken & Chips':true,'Chips & Sausages':true,'Coca-Cola':true,'Coca Cola':true,'Coca‑Cola':true};")
 p.write_text(s)
 
 p=Path('site.html')
