@@ -57,3 +57,9 @@ s=s.replace("d={...x,name,type:orderType,location:location||'To be confirmed by 
 s=s.replace("\\nLocation: ${location}\\n", "")
 s=s.replace("\\nCustomer care will call to confirm your location and discuss delivery charges.", "\\nCustomer care will call to confirm your order and discuss delivery charges.")
 p.write_text(s)
+
+# Remove the later shell-level submitOrder override so the site's original order function remains authoritative.
+p=Path('shell.html')
+s=p.read_text()
+s=re.sub(r'<script id="customer-care-delivery-flow">.*?</script>', '', s, flags=re.S)
+p.write_text(s)
