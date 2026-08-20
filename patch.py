@@ -29,11 +29,8 @@ needle="function closeOrder(){modal.classList.remove('show');document.body.style
 if 'function changeQty' not in s:
     s=s.replace(needle, needle+"\nfunction changeQty(btn,delta){const input=btn.parentElement.querySelector('.qty');input.value=Math.max(0,Number(input.value)+delta);updateTotals()}")
 s=s.replace('.item-row{grid-template-columns:1fr 62px 86px}', '.item-row{grid-template-columns:1fr auto}')
-# Remove unwanted menu items, including Coca-Cola, from the rendered menu.
 s=re.sub(r"if\(!td\.querySelector\('\.item \.item-name\[data-coke\]'\)\)\{.*?drinkList\.appendChild\(item\);\}\}", "", s, flags=re.S)
-# Hard-remove Coca-Cola cards every time the wrapper patches the embedded menu.
 s=s.replace("var removeNames={'Rolex + Drink Combo':true,'Chicken & Chips':true,'Chips & Sausages':true};", "var removeNames={'Rolex + Drink Combo':true,'Chicken & Chips':true,'Chips & Sausages':true,'Coca-Cola':true,'Coca Cola':true,'Coca‑Cola':true};")
-# Remove the index-level submitOrder override. The canonical site.html submitOrder() owns the order flow.
 s=re.sub(r'<script>\(function\(\)\{function fix\(\)\{try\{.*?__bivaOrderFixed.*?</script>', '', s, flags=re.S)
 p.write_text(s)
 
@@ -44,30 +41,31 @@ s=s.replace('<div class="field"><label for="location">Location</label><input id=
 s=s.replace('<div class="field"><label for="location">Location (optional)</label><input id="location" placeholder="Area, landmark or address (optional)" autocomplete="street-address"></div>', '')
 s=s.replace('<div class="sumline"><span>Delivery</span><strong id="deliveryFee">FREE</strong></div><div class="sumline total">', '<div class="sumline total">')
 s=s.replace('<div class="delivery-note" id="deliveryNote">Free delivery within Kagadi Town.</div>', '<div class="delivery-note" id="deliveryNote">Customer care will call to confirm your order and discuss delivery charges.</div>')
+s=s.replace('<div class="delivery-note" id="deliveryNote">Customer care will call to confirm your location and discuss delivery charges.</div>', '<div class="delivery-note" id="deliveryNote">Customer care will call to confirm your order and discuss delivery charges.</div>')
 s=s.replace("document.getElementById('deliveryAreaField').style.display=t==='Delivery'?'block':'none';", '')
 s=s.replace("delivery=orderType==='Delivery'&&document.getElementById('deliveryArea').value==='outside'?5000:0,total=foodTotal+drinkTotal+delivery,", "delivery=0,total=foodTotal+drinkTotal,")
 s=s.replace("document.getElementById('deliveryFee').textContent=delivery?money(delivery):'FREE';", '')
 s=s.replace("document.getElementById('deliveryNote').textContent=orderType!=='Delivery'?'No delivery fee for '+orderType+'.':delivery?'UGX 5,000 delivery outside Kagadi Town.':'Free delivery within Kagadi Town.';", "document.getElementById('deliveryNote').textContent='Customer care will call to confirm your order and discuss delivery charges.';")
+s=s.replace("document.getElementById('deliveryNote').textContent='Customer care will call to confirm your location and discuss delivery charges.';", "document.getElementById('deliveryNote').textContent='Customer care will call to confirm your order and discuss delivery charges.';")
 s=s.replace("if(!location){alert('Please enter your location.');return}", '')
 s=s.replace("Please confirm availability and delivery details.", "Customer care will call to confirm your order and discuss delivery charges.")
 s=s.replace("document.getElementById('deliveryAreaField').style.display='block';updateTotals();", "updateTotals();")
-# Remove the location field and every order/receipt/WhatsApp dependency on it.
 s=s.replace("[['Order',d.no],['Date',d.date],['Customer',d.name],['Order type',d.type],['Location',d.location]].forEach((r,i)=>doc.text(`${r[0]}: ${r[1]}`,15,57+i*7));", "[['Order',d.no],['Date',d.date],['Customer',d.name],['Order type',d.type]].forEach((r,i)=>doc.text(`${r[0]}: ${r[1]}`,15,57+i*7));")
 s=s.replace("doc.text('Customer care will call to confirm the delivery location.',15,y);y+=7;", "")
 s=s.replace("const name=document.getElementById('name').value.trim(),location=document.getElementById('location').value.trim(),notes=document.getElementById('notes').value.trim();", "const name=document.getElementById('name').value.trim(),notes=document.getElementById('notes').value.trim();")
 s=s.replace("d={...x,name,type:orderType,location:location||'To be confirmed by customer care',notes,no,date};", "d={...x,name,type:orderType,notes,no,date};")
 s=s.replace("\\nLocation: ${location}\\n", "")
 s=s.replace("\\nCustomer care will call to confirm your location and discuss delivery charges.", "\\nCustomer care will call to confirm your order and discuss delivery charges.")
+# Put the generated order date/time directly into the WhatsApp message.
+s=s.replace("*NEW ORDER #${no}*\\n\\nCustomer:", "*NEW ORDER #${no}*\\nDate & Time: ${date}\\n\\nCustomer:")
 p.write_text(s)
 
-# Remove the later shell-level submitOrder override so it cannot replace site.html's working flow.
 p=Path('shell.html')
 s=p.read_text()
 s=re.sub(r'd\.defaultView\.submitOrder=function\(\)\{try\{.*?\}\};const exp=', 'const exp=', s, flags=re.S)
 s=re.sub(r'<script id="customer-care-delivery-flow">.*?</script>', '', s, flags=re.S)
 p.write_text(s)
 
-# Keep the visible action label concise while preserving submitOrder() behavior.
 p=Path('site.html')
 s=p.read_text()
 s=s.replace('📄 Generate E-Receipt & Continue to WhatsApp →</button>', 'Complete Order</button>')
