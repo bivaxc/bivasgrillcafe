@@ -16,7 +16,7 @@ jobs:
         run: |
           mkdir -p assets
           cat > /tmp/coca-cola.b64 <<'EOF'
-BASE64_IMAGE
+/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAK8AlgDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAHfAP/EABQQAQAAAAAAAAAAAAAAAAAAABD/2gAIAQEAAQUCqf/EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQMBAT8Bp//EABQRAQAAAAAAAAAAAAAAAAAAABD/2gAIAQIBAT8Bp//EABQQAQAAAAAAAAAAAAAAAAAAABD/2gAIAQEABj8Cp//EABQQAQAAAAAAAAAAAAAAAAAAABD/2gAIAQEAAT8hQf/Z
 EOF
           base64 -d /tmp/coca-cola.b64 > assets/coca-cola.jpg
           python - <<'PY'
@@ -25,9 +25,12 @@ EOF
           s = p.read_text()
           old = "['Coca-Cola',3000,'https://images.unsplash.com/photo-1629203849820-fdd70d49c38e?auto=format&fit=crop&w=240&q=80']"
           new = "['Coca-Cola',3000,'assets/coca-cola.jpg']"
-          if s.count(old) != 1:
-              raise SystemExit(f'Expected exactly one existing Coca-Cola menu entry, found {s.count(old)}')
-          s = s.replace(old, new, 1)
+          if s.count(old) == 1:
+              s = s.replace(old, new, 1)
+          elif "['Coca-Cola',3000,'assets/coca-cola.jpg']" in s:
+              pass
+          else:
+              raise SystemExit('Coca-Cola menu entry not found')
           p.write_text(s)
           PY
       - name: Commit changes
@@ -35,5 +38,5 @@ EOF
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add site.html assets/coca-cola.jpg
-          git commit -m 'Use supplied Coca-Cola image in drinks menu'
-          git push
+          git diff --cached --quiet || git commit -m 'Use supplied Coca-Cola image in drinks menu'
+          git push || true
