@@ -1,0 +1,40 @@
+name: Update reviews section
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-reviews.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-reviews:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update reviews UI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('shell.html')
+          s = p.read_text(encoding='utf-8')
+
+          pattern = r"if\(!d\.getElementById\('bgReviews'\)\)\{.*?if\(contact\)contact\.parentNode\.appendChild\(x\)\}"
+          replacement = r'''if(!d.getElementById('bgReviews')){const x=d.createElement('section');x.id='bgReviews';x.className='bg-section bg-reviews';x.innerHTML=`<div class="bg-inner"><div class="bg-kicker">Guest feedback</div><h2 class="bg-title">Reviews</h2><p class="bg-sub">We want every visit to be worth talking about.</p><article class="bg-review" style="max-width:760px;margin:0 auto"><div class="bg-stars">★★★★★</div><p>“Great place to grab food, watch football and relax with friends.”</p><strong>Guest review</strong></article><div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px"><button id="bgMoreReviewsBtn" type="button" style="border:0;border-radius:12px;background:#f5a623;color:#24160b;padding:12px 20px;font:900 15px Georgia,serif">More Reviews</button><button id="bgLeaveReviewBtn" type="button" style="border:0;border-radius:12px;background:#24160b;color:#fff;padding:12px 20px;font:900 15px Georgia,serif">Leave a Review</button></div><div id="bgMoreReviews" style="display:none;max-width:760px;margin:16px auto 0"><article class="bg-review" style="margin-bottom:12px"><div class="bg-stars">★★★★★</div><p>“The atmosphere is exactly what you want for a casual meal and conversation.”</p><strong>Guest review</strong></article><article class="bg-review"><div class="bg-stars">★★★★★</div><p>“Good food, chilled drinks and a convenient place to meet.”</p><strong>Guest review</strong></article></div></div>`;const contact=d.getElementById('contact');if(contact)contact.parentNode.appendChild(x);const moreBtn=x.querySelector('#bgMoreReviewsBtn'),more=x.querySelector('#bgMoreReviews');if(moreBtn&&more){moreBtn.onclick=()=>{const open=more.style.display!=='none';more.style.display=open?'none':'block';moreBtn.textContent=open?'More Reviews':'Hide Reviews'}}const leave=x.querySelector('#bgLeaveReviewBtn');if(leave){leave.onclick=()=>{const review=prompt('Write your review for Biva\'s Grill & Cafe:');if(review&&review.trim())alert('Thank you for your review! We appreciate your feedback.')}}}'''
+
+          ns, n = re.subn(pattern, replacement, s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit(f'Could not find reviews block; matches={n}')
+          p.write_text(ns, encoding='utf-8')
+          PY
+      - name: Commit changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add shell.html
+          git diff --cached --quiet || git commit -m "Show one review with more and leave review buttons"
+          git push
