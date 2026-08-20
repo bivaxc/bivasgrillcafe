@@ -1,0 +1,34 @@
+name: Add Email Us contact button
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-email-button.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add Email Us button only
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          marker = '</body></html>'
+          addition = '''<script>(function(){function addEmailButton(){try{var shell=document.getElementById('app'),sd=shell&&shell.contentDocument,td=sd&&sd.getElementById('site')&&sd.getElementById('site').contentDocument;if(!td)return;var cards=td.querySelectorAll('#contact .contact-card');var card=cards[1];if(!card||card.querySelector('[data-email-us]'))return;var btn=td.createElement('a');btn.href='mailto:info@bivasgrillcafe.com';btn.setAttribute('data-email-us','1');btn.textContent='Email Us';btn.style.cssText='display:inline-block;margin:10px 0 0 10px;padding:14px 24px;border-radius:14px;background:#f5a623;color:#24160b;text-decoration:none;font:900 18px Georgia,serif;box-shadow:0 6px 16px rgba(65,39,17,.12)';card.appendChild(btn)}catch(e){console.error(e)}}var app=document.getElementById('app');if(app)app.addEventListener('load',function(){addEmailButton();setTimeout(addEmailButton,300);setTimeout(addEmailButton,1000)});setInterval(addEmailButton,2000)})();</script>'''
+          if 'data-email-us' in s:
+              raise SystemExit('Email Us button patch already exists')
+          if s.count(marker) != 1:
+              raise SystemExit(f'Expected exactly one document end marker, found {s.count(marker)}')
+          s = s.replace(marker, addition + marker, 1)
+          p.write_text(s)
+      - name: Commit site change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Add Email Us contact button'
+          git push
