@@ -1,0 +1,34 @@
+name: Fix WhatsApp contact button
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix WhatsApp button
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('site.html')
+          s = p.read_text(encoding='utf-8')
+          old = '''<a class="contact-btn wa-link" href="https://api.whatsapp.com/send?phone=256785224952" target="_blank" rel="noopener noreferrer" onclick="window.location.href='https://api.whatsapp.com/send?phone=256785224952';return false;">WhatsApp Us</a>'''
+          new = '''<a class="contact-btn wa-link" href="https://wa.me/256785224952?text=Hello%20Biva%27s%20Grill%20%26%20Cafe%2C%20I%20would%20like%20to%20place%20an%20order." target="_blank" rel="noopener noreferrer">WhatsApp Us</a>'''
+          if old not in s:
+              raise SystemExit('Expected WhatsApp button was not found; no change made.')
+          p.write_text(s.replace(old, new, 1), encoding='utf-8')
+      - name: Commit patch and remove temporary workflow
+        run: |
+          rm -f .github/workflows/fix-whatsapp.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site.html .github/workflows/fix-whatsapp.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "Fix WhatsApp contact button"
+          git push
