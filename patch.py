@@ -56,10 +56,16 @@ s=s.replace("const name=document.getElementById('name').value.trim(),location=do
 s=s.replace("d={...x,name,type:orderType,location:location||'To be confirmed by customer care',notes,no,date};", "d={...x,name,type:orderType,notes,no,date};")
 s=s.replace("\\nLocation: ${location}\\n", "")
 s=s.replace("\\nCustomer care will call to confirm your location and discuss delivery charges.", "\\nCustomer care will call to confirm your order and discuss delivery charges.")
-p.write_text(s)
-
-# Remove the later shell-level submitOrder override so the site's original order function remains authoritative.
+# The site's original submitOrder() already generates the e-receipt and WhatsApp message.
+# Remove the later shell-level submitOrder override so it cannot replace that working flow.
 p=Path('shell.html')
 s=p.read_text()
+s=re.sub(r'd\.defaultView\.submitOrder=function\(\)\{try\{.*?\}\};const exp=', 'const exp=', s, flags=re.S)
 s=re.sub(r'<script id="customer-care-delivery-flow">.*?</script>', '', s, flags=re.S)
+p.write_text(s)
+
+# Keep the visible action label concise while preserving submitOrder() behavior.
+p=Path('site.html')
+s=p.read_text()
+s=s.replace('📄 Generate E-Receipt & Continue to WhatsApp →</button>', 'Complete Order</button>')
 p.write_text(s)
