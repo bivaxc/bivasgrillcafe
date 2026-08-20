@@ -33,6 +33,8 @@ s=s.replace('.item-row{grid-template-columns:1fr 62px 86px}', '.item-row{grid-te
 s=re.sub(r"if\(!td\.querySelector\('\.item \.item-name\[data-coke\]'\)\)\{.*?drinkList\.appendChild\(item\);\}\}", "", s, flags=re.S)
 # Hard-remove Coca-Cola cards every time the wrapper patches the embedded menu.
 s=s.replace("var removeNames={'Rolex + Drink Combo':true,'Chicken & Chips':true,'Chips & Sausages':true};", "var removeNames={'Rolex + Drink Combo':true,'Chicken & Chips':true,'Chips & Sausages':true,'Coca-Cola':true,'Coca Cola':true,'Coca‑Cola':true};")
+# Remove the index-level submitOrder override. The canonical site.html submitOrder() owns the order flow.
+s=re.sub(r'<script>\(function\(\)\{function fix\(\)\{try\{.*?__bivaOrderFixed.*?</script>', '', s, flags=re.S)
 p.write_text(s)
 
 p=Path('site.html')
@@ -56,8 +58,9 @@ s=s.replace("const name=document.getElementById('name').value.trim(),location=do
 s=s.replace("d={...x,name,type:orderType,location:location||'To be confirmed by customer care',notes,no,date};", "d={...x,name,type:orderType,notes,no,date};")
 s=s.replace("\\nLocation: ${location}\\n", "")
 s=s.replace("\\nCustomer care will call to confirm your location and discuss delivery charges.", "\\nCustomer care will call to confirm your order and discuss delivery charges.")
-# The site's original submitOrder() already generates the e-receipt and WhatsApp message.
-# Remove the later shell-level submitOrder override so it cannot replace that working flow.
+p.write_text(s)
+
+# Remove the later shell-level submitOrder override so it cannot replace site.html's working flow.
 p=Path('shell.html')
 s=p.read_text()
 s=re.sub(r'd\.defaultView\.submitOrder=function\(\)\{try\{.*?\}\};const exp=', 'const exp=', s, flags=re.S)
