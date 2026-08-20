@@ -29,6 +29,8 @@ needle="function closeOrder(){modal.classList.remove('show');document.body.style
 if 'function changeQty' not in s:
     s=s.replace(needle, needle+"\nfunction changeQty(btn,delta){const input=btn.parentElement.querySelector('.qty');input.value=Math.max(0,Number(input.value)+delta);updateTotals()}")
 s=s.replace('.item-row{grid-template-columns:1fr 62px 86px}', '.item-row{grid-template-columns:1fr auto}')
+# Remove the dynamically injected Coca-Cola item from the Drinks section.
+s=re.sub(r"if\(!td\.querySelector\('\.item \.item-name\[data-coke\]'\)\)\{.*?drinkList\.appendChild\(item\);\}\}", "", s, flags=re.S)
 p.write_text(s)
 
 # Delivery is confirmed by customer care after the order. Remove automatic area/fee logic.
