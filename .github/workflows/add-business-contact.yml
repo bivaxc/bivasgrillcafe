@@ -1,0 +1,39 @@
+name: Add business contact
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/add-business-contact.yml'
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update receipt and WhatsApp contact
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('site.html')
+          s = p.read_text()
+          receipt_old = "doc.text('Hoima Road, Kagadi Town, opposite Pearl Bank Kagadi Branch',15,y,{maxWidth:180});const safeName="
+          receipt_new = "doc.text('Hoima Road, Kagadi Town, opposite Pearl Bank Kagadi Branch',15,y,{maxWidth:180});y+=8;doc.text('Business contact: +256 785 224 952',15,y,{maxWidth:180});const safeName="
+          wa_old = "*NEW ORDER #${no}*\\\nDate & Time: ${date}\\\nCustomer: ${name}"
+          wa_new = "*NEW ORDER #${no}*\\\nDate & Time: ${date}\\\nBusiness contact: +256 785 224 952\\\nCustomer: ${name}"
+          if receipt_old not in s:
+              raise SystemExit('Receipt contact insertion point not found')
+          if wa_old not in s:
+              raise SystemExit('WhatsApp insertion point not found')
+          if 'Business contact: +256 785 224 952' in s:
+              raise SystemExit('Business contact already present')
+          s = s.replace(receipt_old, receipt_new, 1)
+          s = s.replace(wa_old, wa_new, 1)
+          p.write_text(s)
+      - name: Commit site change
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add site.html
+          git commit -m 'Include business contact in receipt and WhatsApp order'
+          git push
