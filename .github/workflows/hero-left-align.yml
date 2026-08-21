@@ -10,21 +10,63 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Remove unwanted floating button and apply layout cleanup
+      - name: Apply requested site layout
         run: |
           python - <<'PY'
           from pathlib import Path
           import re
           p=Path('index.html')
           s=p.read_text()
+
+          # Hero alignment and previous removals
           s=s.replace(".hero-inner{position:relative;z-index:2;text-align:center;margin:auto;padding:80px 0}", ".hero-inner{position:relative;z-index:2;text-align:left;margin:0;padding:80px 0}")
           s=s.replace("margin:18px auto;max-width:900px", "margin:18px 0;max-width:900px")
           s=s.replace("max-width:650px;margin:0 auto;color:#e9dbcc", "max-width:650px;margin:0;color:#e9dbcc")
           s=s.replace(".hero-actions{display:flex;justify-content:center;gap:10px", ".hero-actions{display:flex;justify-content:flex-start;gap:10px")
           s=s.replace("<p>Everything available to order, clearly organised. Choose a category or browse everything.</p>", "")
-          s=re.sub(r'\.mobile-order\{[^}]*\}\.mobile-order button\{[^}]*\}', '', s)
+          s=re.sub(r'\\.mobile-order\\{[^}]*\\}\\.mobile-order button\\{[^}]*\\}', '', s)
           s=re.sub(r'<div class="mobile-order">.*?</div>', '', s, flags=re.S)
           s=s.replace(".conclusion{padding-bottom:95px}", ".conclusion{padding-bottom:62px}")
+
+          # Replace the entire bottom/contact area with the requested mobile-first card design
+          bottom='''<section class="contact-section" id="contact">
+            <div class="container contact-wrap">
+              <div class="contact-card">
+                <div class="contact-info">
+                  <h2>Biva's Grill &amp; Cafe</h2>
+                  <div class="info-row"><span>📞</span><a href="tel:+256785224952">+256 785 224 952</a></div>
+                  <div class="info-row"><span>✉️</span><a href="mailto:bivasgrillcafe@gmail.com">bivasgrillcafe@gmail.com</a></div>
+                  <div class="info-row"><span>📍</span><span>Hoima Road, Kagadi Town, opposite Pearl Bank Kagadi Branch</span></div>
+                  <div class="info-row"><span>🕘</span><span>Open daily: 7:00 AM - 10:00 PM</span></div>
+                  <div class="contact-buttons">
+                    <a class="wa-button" href="https://wa.me/256785224952" target="_blank" rel="noopener">WhatsApp Us</a>
+                    <a class="email-button" href="mailto:bivasgrillcafe@gmail.com">Email Us</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="social-card">
+                <div class="social-head">
+                  <h2>Follow Us</h2>
+                  <p>Connect with Biva's Grill &amp; Cafe on social media.</p>
+                </div>
+                <div class="social-list">
+                  <a class="social-item" href="https://www.tiktok.com/@bivasgrillcafe" target="_blank" rel="noopener"><span class="social-icon tiktok">♪</span><span><b>TikTok</b><small>@bivasgrillcafe</small></span></a>
+                  <a class="social-item" href="https://www.instagram.com/bivasgrillcafe/" target="_blank" rel="noopener"><span class="social-icon instagram">◎</span><span><b>Instagram</b><small>@bivasgrillcafe</small></span></a>
+                  <a class="social-item" href="https://www.facebook.com/bivasgrillcafe/" target="_blank" rel="noopener"><span class="social-icon facebook">f</span><span><b>Facebook</b><small>@bivasgrillcafe</small></span></a>
+                </div>
+              </div>
+            </div>
+            <div class="contact-float">
+              <a class="float-delivery" href="https://wa.me/256785224952" target="_blank" rel="noopener" aria-label="Order on WhatsApp">▣</a>
+              <a class="float-phone" href="tel:+256785224952" aria-label="Call Biva's Grill &amp; Cafe">☎</a>
+            </div>
+          </section>'''
+          s=re.sub(r'<section class="conclusion" id="contact">.*?</section>', bottom, s, count=1, flags=re.S)
+          s=re.sub(r'<section class="contact-section" id="contact">.*?</section>', bottom, s, count=1, flags=re.S) if s.count('<section class="contact-section" id="contact">') == 0 else s
+
+          css='''.contact-section{background:var(--dark);color:#f7eee5;padding:76px 0 88px;position:relative}.contact-wrap{max-width:760px}.contact-card,.social-card{background:#30231c;border:1px solid #ffffff1c;border-radius:28px;padding:30px;box-shadow:0 12px 35px #0003}.social-card{margin-top:24px}.contact-info h2,.social-head h2{font:800 38px/1.1 'Playfair Display',serif;margin:0 0 24px;color:#fff}.info-row{display:flex;gap:12px;align-items:flex-start;font:500 17px/1.5 'Playfair Display',serif;color:#e9ddd3;margin:15px 0}.info-row span:first-child{width:28px;flex:0 0 28px}.info-row a{text-decoration:none;color:#e9ddd3}.contact-buttons{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px}.wa-button,.email-button{padding:15px 28px;border-radius:14px;font-weight:900;text-align:center;min-width:145px}.wa-button{background:#20d366;color:#07140c}.email-button{background:#fff;color:var(--dark)}.social-head p{color:#d9c8bb;font:500 17px/1.6 'Playfair Display',serif;max-width:470px;margin:0 0 22px}.social-list{display:grid;gap:14px}.social-item{display:flex;align-items:center;gap:18px;background:#fff;color:var(--dark);border-radius:20px;padding:14px 18px;min-height:74px}.social-icon{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;color:#fff;font-size:31px;font-weight:900;flex:0 0 52px}.social-icon.tiktok{background:#111}.social-icon.instagram{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)}.social-icon.facebook{background:#1877f2;font-family:Arial}.social-item b{display:block;font:800 21px 'Playfair Display',serif}.social-item small{display:block;color:#7e6a57;font-weight:700;margin-top:2px}.contact-float{position:fixed;right:18px;bottom:22px;z-index:240;display:grid;gap:12px}.contact-float a{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;border:3px solid #fff;box-shadow:0 8px 25px #0005;font-size:27px;font-weight:900}.float-delivery{background:var(--gold);color:var(--dark)}.float-phone{background:#1687f8;color:#fff}'''
+          s=s.replace('</style></head>', css+'</style></head>')
           p.write_text(s)
           PY
       - name: Commit change
