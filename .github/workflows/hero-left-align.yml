@@ -20,6 +20,7 @@ jobs:
           s=s.replace("margin:18px auto;max-width:900px", "margin:18px 0;max-width:900px")
           s=s.replace("max-width:650px;margin:0 auto;color:#e9dbcc", "max-width:650px;margin:0;color:#e9dbcc")
           s=s.replace(".hero-actions{display:flex;justify-content:center;gap:10px", ".hero-actions{display:flex;justify-content:flex-start;gap:10px")
+          s=s.replace("<p>Everything available to order, clearly organised. Choose a category or browse everything.</p>", "")
           s=s.replace(".mobile-order{display:block;position:fixed;z-index:250;left:10px;right:10px;bottom:10px;background:var(--dark);padding:10px;border-radius:13px;box-shadow:0 10px 35px #0008}.mobile-order button{width:100%;border:0;border-radius:9px;background:var(--gold);padding:12px;font-weight:900}", ".mobile-order{display:none}")
           s=s.replace("<div class=\"mobile-order\"><button onclick=\"openOrder()\">🛒 Order from Biva's</button></div>", "")
           s=s.replace(".conclusion{padding-bottom:95px}", ".conclusion{padding-bottom:62px}")
