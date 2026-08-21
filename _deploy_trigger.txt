@@ -1,1 +1,0 @@
-Biva's Grill & Cafe deployment trigger. The Order section uses the official food and drinks menu with card-style items, images, prices, quantities, and ordering logic in site.html.
