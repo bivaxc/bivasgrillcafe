@@ -6,11 +6,11 @@ permissions:
   contents: write
 jobs:
   update:
-    if: github.event.head_commit.message != 'chore: left-align hero content'
+    if: github.event.head_commit.message != 'chore: site layout cleanup'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Align hero content
+      - name: Apply site layout cleanup
         run: |
           python - <<'PY'
           from pathlib import Path
@@ -20,6 +20,9 @@ jobs:
           s=s.replace("margin:18px auto;max-width:900px", "margin:18px 0;max-width:900px")
           s=s.replace("max-width:650px;margin:0 auto;color:#e9dbcc", "max-width:650px;margin:0;color:#e9dbcc")
           s=s.replace(".hero-actions{display:flex;justify-content:center;gap:10px", ".hero-actions{display:flex;justify-content:flex-start;gap:10px")
+          s=s.replace(".mobile-order{display:block;position:fixed;z-index:250;left:10px;right:10px;bottom:10px;background:var(--dark);padding:10px;border-radius:13px;box-shadow:0 10px 35px #0008}.mobile-order button{width:100%;border:0;border-radius:9px;background:var(--gold);padding:12px;font-weight:900}", ".mobile-order{display:none}")
+          s=s.replace("<div class=\"mobile-order\"><button onclick=\"openOrder()\">🛒 Order from Biva's</button></div>", "")
+          s=s.replace(".conclusion{padding-bottom:95px}", ".conclusion{padding-bottom:62px}")
           p.write_text(s)
           PY
       - name: Commit change
@@ -27,5 +30,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "chore: left-align hero content"
+          git diff --cached --quiet || git commit -m "chore: site layout cleanup"
           git push
